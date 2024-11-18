@@ -1,0 +1,47 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  repo: https://traefik.github.io/charts
+  chart: traefik
+  targetNamespace: traefik
+  version: 33.0.0
+  valuesContent: |-
+    deployment:
+      podAnnotations:
+        linkerd.io/inject: enabled
+        config.linkerd.io/proxy-log-level: debug
+    logs:
+      general:
+        level: TRACE
+      access:
+        enabled: true
+    providers:
+      kubernetesIngress:
+        enabled: false
+      kubernetesGateway:
+        enabled: true
+        experimentalChannel: true
+        gateway:
+          namespacePolicy: All
+          listeners:
+            web:
+              port: 8000
+              protocol: HTTP
+              namespacePolicy: All
+              allowedRoutes:
+                namespaces:
+                  from: Same
+            websecure:
+              port: 8443
+              protocol: HTTPS
+              namespacePolicy: All
+              allowedRoutes:
+                namespaces:
+                  from: Same
+              certificateRefs:
+                - kind: Secret
+                  name: debian-k3s-gateway-tls
+                  namespace: traefik

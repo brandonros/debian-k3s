@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-mlflow-dbs
+  namespace: postgresql
+spec:
+  template:
+    spec:
+      containers:
+      - name: create-db
+        image: docker.io/bitnami/postgresql:17.1.0-debian-12-r0
+        command: ['/bin/bash']
+        args:
+          - -c
+          - |
+            psql --host=postgresql --username=postgres --dbname=postgres << 'EOF'
+            CREATE DATABASE mlflow;
+            CREATE DATABASE mlflow_auth;
+            EOF
+        env:
+          - name: PGPASSWORD
+            value: postgres123
+      restartPolicy: Never

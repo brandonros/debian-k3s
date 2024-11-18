@@ -1,0 +1,30 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: linkerd-control-plane
+  namespace: kube-system
+spec:
+  repo: https://helm.linkerd.io/edge
+  chart: linkerd-control-plane
+  version: 2024.11.3
+  targetNamespace: linkerd
+  valuesContent: |-
+    controllerLogLevel: debug
+    proxy:
+      logLevel: debug
+    policyController:
+      logLevel: debug
+    prometheusUrl: "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090"
+    identity:
+      issuer:
+        scheme: kubernetes.io/tls
+      externalCA: true
+    podMonitor:
+      enabled: true
+      controller:
+        enabled: true
+        namespaceSelector: |
+          matchNames:
+            - {{ .Release.Namespace }}
+            - traefik
+            - chess-engine-api

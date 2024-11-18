@@ -1,0 +1,39 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: docker-registry-reference-grant
+  namespace: docker-registry
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: traefik
+  to:
+  - group: ""
+    kind: Service
+    name: docker-registry
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: docker-registry-httproute
+  namespace: traefik
+spec:
+  parentRefs:
+  - name: debian-k3s-gateway
+    namespace: traefik
+    kind: Gateway
+    sectionName: websecure
+  hostnames:
+  - docker-registry.debian-k3s
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: docker-registry
+      namespace: docker-registry
+      port: 5000
+      kind: Service
+      weight: 100

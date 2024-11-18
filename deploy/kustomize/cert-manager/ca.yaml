@@ -1,0 +1,8 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: debian-k3s-ca-issuer
+  namespace: cert-manager
+spec:
+  ca:
+    secretName: debian-k3s-tls

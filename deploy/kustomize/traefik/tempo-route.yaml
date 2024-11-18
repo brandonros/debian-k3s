@@ -1,0 +1,39 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: tempo-reference-grant
+  namespace: monitoring
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: traefik
+  to:
+  - group: ""
+    kind: Service
+    name: tempo
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: tempo-httproute
+  namespace: traefik
+spec:
+  parentRefs:
+  - name: debian-k3s-gateway
+    namespace: traefik
+    kind: Gateway
+    sectionName: websecure
+  hostnames:
+  - tempo.debian-k3s
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: tempo
+      namespace: monitoring
+      port: 4318
+      kind: Service
+      weight: 100

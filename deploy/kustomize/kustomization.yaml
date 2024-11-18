@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - metrics-server
+  - cert-manager
+  - trust-manager
+  - monitoring
+  - linkerd
+  - traefik
+  - docker-registry
+  - cicd
+  - ngrok-operator
+  - redis
+  - postgresql
+  - minio
+  - backstage
+  - mlflow
+  - windmill
+  - temporal
+  - chess-engine-api
+  

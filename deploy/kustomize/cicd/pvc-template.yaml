@@ -1,0 +1,31 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cicd-storage
+provisioner: rancher.io/local-path
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cicd-pv
+spec:
+  storageClassName: cicd-storage
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: ${HOST_PATH}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cicd-pvc
+  namespace: cicd
+spec:
+  storageClassName: cicd-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

@@ -1,0 +1,19 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: linkerd-viz
+  namespace: kube-system
+spec:
+  repo: https://helm.linkerd.io/edge
+  chart: linkerd-viz
+  version: 2024.11.3
+  targetNamespace: linkerd
+  valuesContent: |-
+    defaultLogLevel: trace
+    dashboard:
+      enforcedHostRegexp: '.*'
+    grafana:
+      url: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
+    prometheusUrl: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+    prometheus:
+      enabled: false

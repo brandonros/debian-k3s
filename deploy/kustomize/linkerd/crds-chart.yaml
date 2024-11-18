@@ -1,0 +1,15 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: linkerd-crds
+  namespace: kube-system
+spec:
+  repo: https://helm.linkerd.io/edge
+  chart: linkerd-crds
+  version: 2024.11.3
+  targetNamespace: linkerd
+  valuesContent: |-
+    # TODO: CRD collision as per https://github.com/linkerd/linkerd2/issues/12232
+    enableHttpRoutes: false
+    enableTcpRoutes: false
+    enableTlsRoutes: false

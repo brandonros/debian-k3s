@@ -1,0 +1,109 @@
+# vm type
+vmType: vz
+
+# images
+images:
+- location: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-arm64.qcow2"
+  arch: "aarch64"
+  digest: "sha256:42911131556b610895360e3d28a2c3ec41c0bad85e8df9fc9374996509d1f256" # Mon, 11 Nov 2024 14:47:23 GMT
+
+# memory
+memory: "10GiB"
+
+# cpus
+cpus: 8
+
+# cpu type (TODO: gets ignored by VZ?)
+cpuType:
+  aarch64: host
+
+# disk
+disk: "100GiB"
+
+# port forwards
+portForwards:
+- guestPort: 6443
+  hostPort: 6443
+  guestIP: "127.0.0.1"
+  hostIP: "127.0.0.1"
+  proto: tcp
+- guestPort: 443
+  hostPort: 443
+  guestIP: "127.0.0.1"
+  hostIP: "127.0.0.1"
+  proto: tcp
+- guestPort: 80
+  hostPort: 80
+  guestIP: "127.0.0.1"
+  hostIP: "127.0.0.1"
+  proto: tcp
+
+# mounts
+mounts:
+- location: "/Users/brandon/Desktop/rust/chess_engine_api"
+  mountPoint: "/mnt/chess_engine_api"
+  writable: true
+
+# containerd is managed by k3s, not by Lima, so the values are set to false here.
+containerd:
+  system: false
+  user: false
+
+# provision
+provision:
+- mode: system
+  script: |
+    #!/bin/sh
+    if [ ! -d /var/lib/rancher/k3s ]; then
+      # install k3s
+      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --write-kubeconfig-mode 644 --disable=traefik --disable=metrics-server" sh -
+
+      # trust cluster ssl
+      cp /var/lib/rancher/k3s/server/tls/server-ca.crt /usr/local/share/ca-certificates/
+      update-ca-certificates
+
+      # add coredns in the cluster to node dns resolution chain
+      echo "DNS=10.43.0.10" | tee -a /etc/systemd/resolved.conf
+      systemctl restart systemd-resolved
+    fi
+
+# probes
+probes:
+- script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    if ! timeout 30s bash -c "until test -f /etc/rancher/k3s/k3s.yaml; do sleep 3; done"; then
+      echo >&2 "k3s is not running yet"
+      exit 1
+    fi
+  hint: |
+    The k3s kubeconfig file has not yet been created.
+    Run "limactl shell k3s sudo journalctl -u k3s" to check the log.
+    If that is still empty, check the bottom of the log at "/var/log/cloud-init-output.log".
+
+# copyToHost
+copyToHost:
+- guest: "/etc/rancher/k3s/k3s.yaml"
+  host: "{{.Dir}}/copied-from-guest/kubeconfig.yaml"
+  deleteOnStop: true
+- guest: "/var/lib/rancher/k3s/server/tls/server-ca.crt"
+  host: "{{.Dir}}/copied-from-guest/server-ca.crt"
+  deleteOnStop: true
+- guest: "/var/lib/rancher/k3s/server/tls/server-ca.key"
+  host: "{{.Dir}}/copied-from-guest/server-ca.key"
+  deleteOnStop: true
+
+# message
+message: |
+  To run `kubectl` on the host (assumes kubectl is installed), run the following commands:
+  ------
+  export KUBECONFIG="{{.Dir}}/copied-from-guest/kubeconfig.yaml"
+  kubectl ...
+  ------
+
+# user
+user:
+  name: brandon
+
+# operating system
+os: Linux

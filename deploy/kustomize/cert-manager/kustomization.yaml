@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./namespace.yaml
+  - ./chart.yaml
+  - ./ca.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+secretGenerator:
+  - name: debian-k3s-tls
+    namespace: cert-manager
+    type: kubernetes.io/tls
+    files:
+      - tls.crt=./certs/server-ca.crt
+      - tls.key=./certs/server-ca.key

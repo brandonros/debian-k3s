@@ -1,0 +1,19 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: minio
+  namespace: kube-system
+spec:
+  repo: https://charts.min.io/
+  chart: minio
+  targetNamespace: minio
+  valuesContent: |-
+    rootUser: rootuser
+    rootPassword: rootpass123
+    mode: standalone
+    replicas: 1
+    persistence:
+      size: 10Gi
+    resources:
+      requests:
+        memory: 512Mi

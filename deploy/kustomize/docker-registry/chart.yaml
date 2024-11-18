@@ -1,0 +1,9 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: docker-registry
+  namespace: kube-system
+spec:
+  repo: https://helm.twun.io
+  chart: docker-registry
+  targetNamespace: docker-registry

@@ -1,0 +1,57 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: kube-prometheus-stack
+  namespace: kube-system
+spec:
+  repo: https://prometheus-community.github.io/helm-charts
+  chart: kube-prometheus-stack
+  targetNamespace: monitoring
+  valuesContent: |-
+    prometheus:
+      prometheusSpec:
+        podMonitorNamespaceSelector: {}
+        podMonitorSelector: {}
+        podMonitorSelectorNilUsesHelmValues: false
+        ruleNamespaceSelector: {}
+        ruleSelector: {}
+        ruleSelectorNilUsesHelmValues: false
+        serviceMonitorNamespaceSelector: {}
+        serviceMonitorSelector: {}
+        serviceMonitorSelectorNilUsesHelmValues: false
+    grafana:
+      sidecar:
+        datasources:
+          defaultDatasourceEnabled: false
+      additionalDataSources:
+        - name: "Prometheus"
+          type: prometheus
+          uid: prometheus
+          url: http://kube-prometheus-stack-prometheus.monitoring:9090/
+          access: proxy
+          isDefault: true
+          jsonData:
+            httpMethod: POST
+            timeInterval: 30s
+        - name: "Alertmanager"
+          type: alertmanager
+          uid: alertmanager
+          url: http://kube-prometheus-stack-alertmanager.monitoring:9093/
+          access: proxy
+          isDefault: false
+          jsonData:
+            handleGrafanaManagedAlerts: false
+            implementation: prometheus
+        - name: Loki
+          type: loki
+          uid: loki
+          isDefault: false
+          access: proxy
+          url: http://loki-stack.monitoring:3100
+        - name: Tempo
+          type: tempo
+          uid: tempo
+          isDefault: false
+          access: proxy
+          url: http://tempo.monitoring:3100
+

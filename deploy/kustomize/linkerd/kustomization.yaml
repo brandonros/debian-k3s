@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./namespace.yaml
+  - ./crds-chart.yaml
+  - ./identity-issuer.yaml
+  - ./identity-trust-roots.yaml
+  - ./control-plane-chart.yaml
+  - ./viz-chart.yaml

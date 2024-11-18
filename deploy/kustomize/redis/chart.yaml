@@ -1,0 +1,15 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: redis
+  namespace: kube-system
+spec:
+  repo: https://charts.bitnami.com/bitnami
+  chart: redis
+  targetNamespace: redis
+  valuesContent: |-
+    architecture: standalone
+    auth:
+      enabled: false
+    replica:
+      replicaCount: 0

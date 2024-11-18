@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB_NAME}
+  namespace: cicd
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 30
+  template:
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+          - "--dockerfile=${DOCKERFILE}"
+          - "--context=${PVC_MOUNT_PATH}"
+          - "--destination=${IMAGE_DESTINATION}"
+        volumeMounts:
+          - name: pvc-volume
+            mountPath: ${PVC_MOUNT_PATH}
+      restartPolicy: Never
+      volumes:
+        - name: pvc-volume
+          persistentVolumeClaim:
+            claimName: ${PVC_NAME}
