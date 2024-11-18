@@ -26,19 +26,6 @@ mkdir -p ./deploy/kustomize/cert-manager/certs
 cp ~/.lima/debian-k3s/copied-from-guest/server-ca.crt ./deploy/kustomize/cert-manager/certs/server-ca.crt
 cp ~/.lima/debian-k3s/copied-from-guest/server-ca.key ./deploy/kustomize/cert-manager/certs/server-ca.key
 
-# compile cicd template
-export HOST_PATH="/mnt/chess_engine_api"
-envsubst < ./deploy/kustomize/cicd/pvc-template.yaml > ./deploy/kustomize/cicd/pvc.yaml
-
-# compile ngrok-operator template
-export NGROK_API_KEY=${NGROK_API_KEY}
-export NGROK_AUTH_TOKEN=${NGROK_AUTH_TOKEN}
-envsubst < ./deploy/kustomize/ngrok-operator/chart-template.yaml > ./deploy/kustomize/ngrok-operator/chart.yaml
-
-# compile ngrok-ingress template
-export NGROK_HOST=${NGROK_HOST}
-envsubst < ./deploy/kustomize/chess-engine-api/ngrok-ingress-template.yaml > ./deploy/kustomize/chess-engine-api/ngrok-ingress.yaml
-
 # workaround traefik needing v1.1.1 gateway-api and linkerd needing v0.8.1 gateway-api crds
 if ! kubectl get crd gatewayclasses.gateway.networking.k8s.io -o json | jq -e '.status.storedVersions | contains(["v1beta1"])' >/dev/null
 then
@@ -51,14 +38,17 @@ then
 fi
 
 # deploy
-kubectl apply -k ./deploy/kustomize
+export HOST_PATH="/mnt/chess_engine_api"
+export NGROK_API_KEY=${NGROK_API_KEY}
+export NGROK_AUTH_TOKEN=${NGROK_AUTH_TOKEN}
+export NGROK_HOST=${NGROK_HOST}
+kustomize build ./deploy/kustomize | envsubst | kubectl apply -f -
 
 # patch coredns for external cluster pulling from docker-registry in the cluster
 echo "reconfiguring coredns"
 kubectl wait --for=condition=available --timeout=300s deployment/traefik -n traefik
 export TRAEFIK_IP=$(kubectl -n traefik get svc traefik -o jsonpath='{.spec.clusterIP}')
-envsubst < deploy/kustomize/coredns/config-template.yaml > deploy/kustomize/coredns/config.yaml
-kubectl apply -k ./deploy/kustomize/coredns
+envsubst < deploy/kustomize/coredns/config.yaml | kubectl apply -f -
 
 # check if we need to build the application
 if ! curl -s https://docker-registry.debian-k3s/v2/_catalog | jq -e '.repositories | contains(["chess-engine-api"])' >/dev/null; then
@@ -71,7 +61,7 @@ if ! curl -s https://docker-registry.debian-k3s/v2/_catalog | jq -e '.repositori
     export PVC_NAME="cicd-pvc"
     export DOCKERFILE="Dockerfile"
     export PVC_MOUNT_PATH="/workspace"
-    envsubst < ./deploy/kustomize/cicd/build-job-template.yaml | kubectl apply -f -
+    envsubst < ./deploy/kustomize/cicd/build-job.yaml | kubectl apply -f -
 
     # wait for job to complete
     echo "waiting for kaniko build job to complete"
