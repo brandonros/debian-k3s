@@ -30,7 +30,7 @@ K3s + Kustomize + Helm on top of Debian
 
 ```shell
 # install dependencies
-brew install kubectl lima helm
+brew install kubectl lima helm kustomize
 
 # configure kubectl
 export KUBECONFIG="/Users/brandon/.lima/debian-k3s/copied-from-guest/kubeconfig.yaml"
