@@ -9,15 +9,9 @@ K3s + Kustomize + Helm on top of Debian
 - Traefik (ingress, SSL, load balancing, routing)
 - Linkerd (service mesh, observability)
 - cert-manager + trust-manager (automated certificate management)
-- docker-registry (stores and serves container images)
-- Kaniko (builds container images)
 - Helm (deployment package manager / YAML templating engine)
 - ngrok-operator (local-to-public endpoint mapper)
-- backstage - service catalog
-- redis - caching
-- postgres - database
-- temporal - workflow engine
-- windmill - workflow engine
+- graphite (metrics)
 
 ## Technologies to add
 

@@ -29,4 +29,3 @@ data:
     import /etc/coredns/custom/*.server
   NodeHosts: |
     192.168.5.15 lima-debian-k3s
-    ${TRAEFIK_IP} docker-registry.debian-k3s

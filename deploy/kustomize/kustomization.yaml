@@ -8,15 +8,5 @@ resources:
   - monitoring
   - linkerd
   - traefik
-  - docker-registry
-  - cicd
   - ngrok-operator
-  - redis
-  - postgresql
-  - minio
-  - backstage
-  - mlflow
-  - windmill
-  - temporal
-  - chess-engine-api
-  
+  - graphite

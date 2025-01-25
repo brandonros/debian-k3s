@@ -5,7 +5,7 @@ vmType: vz
 images:
 - location: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-arm64.qcow2"
   arch: "aarch64"
-  digest: "sha256:42911131556b610895360e3d28a2c3ec41c0bad85e8df9fc9374996509d1f256" # Mon, 11 Nov 2024 14:47:23 GMT
+  digest: "sha256:42911131556b610895360e3d28a2c3ec41c0bad85e8df9fc9374996509d1f256" # Wed, 15 Jan 2025 23:04:40 GMT
 
 # memory
 memory: "10GiB"
@@ -37,12 +37,14 @@ portForwards:
   guestIP: "127.0.0.1"
   hostIP: "127.0.0.1"
   proto: tcp
+- guestPort: 8125
+  hostPort: 8125
+  guestIP: "127.0.0.1"
+  hostIP: "127.0.0.1"
+  proto: udp
 
 # mounts
-mounts:
-- location: "/Users/brandon/Desktop/rust/chess_engine_api"
-  mountPoint: "/mnt/chess_engine_api"
-  writable: true
+mounts: []
 
 # containerd is managed by k3s, not by Lima, so the values are set to false here.
 containerd:
