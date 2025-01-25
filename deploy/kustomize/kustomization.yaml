@@ -9,4 +9,3 @@ resources:
   - linkerd
   - traefik
   - ngrok-operator
-  - graphite

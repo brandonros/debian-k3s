@@ -2,7 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
   name: graphite-reference-grant
-  namespace: graphite
+  namespace: monitoring
 spec:
   from:
   - group: gateway.networking.k8s.io
@@ -33,7 +33,7 @@ spec:
         value: /
     backendRefs:
     - name: graphite
-      namespace: graphite
+      namespace: monitoring
       port: 8080
       kind: Service
       weight: 100

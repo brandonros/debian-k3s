@@ -27,7 +27,7 @@ spec:
         - name: "Prometheus"
           type: prometheus
           uid: prometheus
-          url: http://kube-prometheus-stack-prometheus.monitoring:9090/
+          url: http://kube-prometheus-stack-prometheus.monitoring:9090
           access: proxy
           isDefault: true
           jsonData:
@@ -36,7 +36,7 @@ spec:
         - name: "Alertmanager"
           type: alertmanager
           uid: alertmanager
-          url: http://kube-prometheus-stack-alertmanager.monitoring:9093/
+          url: http://kube-prometheus-stack-alertmanager.monitoring:9093
           access: proxy
           isDefault: false
           jsonData:
@@ -54,4 +54,10 @@ spec:
           isDefault: false
           access: proxy
           url: http://tempo.monitoring:3100
+        - name: Graphite
+          type: graphite
+          uid: graphite
+          isDefault: false
+          access: proxy
+          url: http://graphite.monitoring:8080
 
