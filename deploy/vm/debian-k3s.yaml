@@ -37,11 +37,11 @@ portForwards:
   guestIP: "127.0.0.1"
   hostIP: "127.0.0.1"
   proto: tcp
-- guestPort: 8125
-  hostPort: 8125
+- guestPort: 30000
+  hostPort: 30000
   guestIP: "127.0.0.1"
   hostIP: "127.0.0.1"
-  proto: udp
+  proto: tcp
 
 # mounts
 mounts: []

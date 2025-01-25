@@ -27,4 +27,4 @@ spec:
     timeZone: UTC
     
     statsd:
-      interface: UDP
+      interface: TCP
