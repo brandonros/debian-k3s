@@ -11,7 +11,8 @@ K3s + Kustomize + Helm on top of Debian
 - cert-manager + trust-manager (automated certificate management)
 - Helm (deployment package manager / YAML templating engine)
 - ngrok-operator (local-to-public endpoint mapper)
-- graphite (metrics)
+- Graphite (metrics)
+- Chromium (headless browser)
 
 ## Technologies to add
 

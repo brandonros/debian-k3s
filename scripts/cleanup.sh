@@ -23,7 +23,7 @@ for cert in $CERTS; do
 done
 
 # remove entries from /etc/hosts
-HOSTS_ENTRY="127.0.0.1 grafana.debian-k3s docker-registry.debian-k3s tempo.debian-k3s prometheus.debian-k3s linkerd-viz.debian-k3s graphite.debian-k3s"
+HOSTS_ENTRY="127.0.0.1 grafana.debian-k3s docker-registry.debian-k3s tempo.debian-k3s prometheus.debian-k3s linkerd-viz.debian-k3s graphite.debian-k3s chromium.debian-k3s"
 if grep -qF "$HOSTS_ENTRY" /etc/hosts; then
     sudo sed -i '' "/$HOSTS_ENTRY/d" /etc/hosts
     echo "Removed hosts entries"
