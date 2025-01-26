@@ -39,7 +39,7 @@ then
     kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.8.1/experimental-install.yaml
     kubectl wait --for condition=established --timeout=60s crd/httproutes.gateway.networking.k8s.io
     kubectl wait --for condition=available --timeout=60s deployment/gateway-api-admission-server -n gateway-system
-    kubectl wait --for=condition=ready pod -l name=gateway-api-admission-server -n gateway-system --timeout=120s
+    kubectl rollout status deployment/gateway-api-admission-server -n gateway-system --watch
 
     kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.1/experimental-install.yaml
     kubectl wait --for condition=established --timeout=60s crd/backendlbpolicies.gateway.networking.k8s.io
@@ -62,7 +62,7 @@ kubectl wait --for=condition=available deployment/cert-manager -n cert-manager -
 kubectl wait --for=condition=available deployment/cert-manager-webhook -n cert-manager --timeout=120s
 kubectl wait --for=condition=available deployment/cert-manager-cainjector -n cert-manager --timeout=120s
 echo "Waiting for cert-manager webhook to be ready..."
-kubectl wait --for=condition=ready pod -l app=webhook -n cert-manager --timeout=120s
+kubectl rollout status deployment/cert-manager-webhook -n cert-manager --watch
 echo "Waiting for cert-manager CRDs to be established..."
 kubectl wait --for=condition=established --timeout=120s crd/clusterissuers.cert-manager.io
 kubectl wait --for=condition=established --timeout=120s crd/certificates.cert-manager.io
@@ -84,7 +84,7 @@ kubectl wait --for=create deployment/trust-manager -n trust-manager --timeout=12
 echo "Waiting for trust-manager deployments to be available..."
 kubectl wait --for=condition=available deployment/trust-manager -n trust-manager --timeout=120s
 echo "Waiting for trust-manager webhook to be ready..."
-kubectl wait --for=condition=ready pod -l app=trust-manager -n trust-manager --timeout=120s
+kubectl rollout status deployment/trust-manager -n trust-manager --watch
 echo "Waiting for trust-manager CRDs to be established..."
 kubectl wait --for=condition=established --timeout=120s crd/bundles.trust.cert-manager.io
  
@@ -95,7 +95,7 @@ echo "Waiting for traefik deployments to be created..."
 kubectl wait --for=create deployment/traefik -n traefik --timeout=120s
 echo "Waiting for traefik to be ready..."
 kubectl wait --for=condition=available deployment/traefik -n traefik --timeout=120s
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=traefik -n traefik --timeout=120s
+kubectl rollout status deployment/traefik -n traefik --watch
 echo "Waiting for traefik CA secret to be created..."
 kubectl wait --for=create secret/debian-k3s-gateway-tls -n traefik --timeout=60s
 
@@ -112,6 +112,7 @@ kustomize build ./deploy/kustomize/monitoring | envsubst | kubectl apply -f -
 ## pdf-generator
 echo "deploying pdf-generator"
 kustomize build ./deploy/kustomize/pdf-generator | envsubst | kubectl apply -f -
+kubectl wait --for=create deployment/pdf-generator -n pdf-generator --timeout=120s
 kubectl rollout status deployment pdf-generator -n pdf-generator --watch
 
 ## linkerd-control-plane
