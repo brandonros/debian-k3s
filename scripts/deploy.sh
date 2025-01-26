@@ -15,7 +15,7 @@ then
 
     # append exposed external services from ingress to /etc/hosts if not already present
     echo "adding to /etc/hosts"
-    HOSTS_ENTRY="127.0.0.1 grafana.debian-k3s docker-registry.debian-k3s tempo.debian-k3s prometheus.debian-k3s linkerd-viz.debian-k3s graphite.debian-k3s chromium.debian-k3s"
+    HOSTS_ENTRY="127.0.0.1 grafana.debian-k3s docker-registry.debian-k3s tempo.debian-k3s prometheus.debian-k3s linkerd-viz.debian-k3s graphite.debian-k3s chromium.debian-k3s pdf-generator.debian-k3s"
     if ! grep -qF "$HOSTS_ENTRY" /etc/hosts; then
         echo "$HOSTS_ENTRY" | sudo tee -a /etc/hosts
     fi

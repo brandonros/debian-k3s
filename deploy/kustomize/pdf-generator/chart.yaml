@@ -1,0 +1,53 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: pdf-generator
+  namespace: pdf-generator
+spec:
+  repo: https://raw.githubusercontent.com/brandonros/hull-wrapper/master/
+  chart: hull-wrapper
+  targetNamespace: pdf-generator
+  version: 0.2.0
+  valuesContent: |-
+    hull:
+      config:
+        general:
+          nameOverride: pdf-generator
+          rbac: false
+          noObjectNamePrefixes: true
+      objects:
+        serviceaccount:
+          default:
+            enabled: false
+        deployment:
+          pdf-generator:
+            replicas: 2
+            annotations:
+              linkerd.io/inject: enabled
+              config.linkerd.io/proxy-log-level: debug
+            pod:
+              containers:
+                main:
+                  resources:
+                    requests:
+                      memory: 512Mi
+                      cpu: 500m
+                    limits:
+                      memory: 2048Mi
+                      cpu: 1000m
+                  image:
+                    repository: ghcr.io/brandonros/pdf-generator
+                    tag: 3dd49de778656d59b84a08debbccb0456421cd00
+                  env:
+                    BROWSER_WS_ENDPOINT:
+                      value: ws://chromium:3000/
+                  ports:
+                    http:
+                      containerPort: 3000
+        service:
+          pdf-generator:
+            type: ClusterIP
+            ports:
+              http:
+                port: 3000
+                targetPort: 3000
