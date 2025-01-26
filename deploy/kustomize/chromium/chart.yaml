@@ -21,7 +21,7 @@ spec:
             enabled: false
         deployment:
           chromium:
-            replicas: 1
+            replicas: 2
             annotations:
               linkerd.io/inject: enabled
               config.linkerd.io/proxy-log-level: debug
@@ -31,9 +31,9 @@ spec:
                   resources:
                     requests:
                       memory: 512Mi
-                      cpu: 1000m
+                      cpu: 500m
                     limits:
-                      memory: 1024Mi
+                      memory: 2048Mi
                       cpu: 1000m
                   image:
                     repository: ghcr.io/browserless/chromium
