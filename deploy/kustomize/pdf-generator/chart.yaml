@@ -1,18 +1,18 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: chess-engine-api
-  namespace: kube-system
+  name: pdf-generator
+  namespace: pdf-generator
 spec:
   repo: https://raw.githubusercontent.com/brandonros/hull-wrapper/master/
   chart: hull-wrapper
-  targetNamespace: chess-engine-api
+  targetNamespace: pdf-generator
   version: 0.2.0
   valuesContent: |-
     hull:
       config:
         general:
-          nameOverride: chess-engine-api
+          nameOverride: pdf-generator
           rbac: false
           noObjectNamePrefixes: true
       objects:
@@ -20,8 +20,8 @@ spec:
           default:
             enabled: false
         deployment:
-          chess-engine-api:
-            replicas: 2
+          pdf-generator:
+            replicas: 5
             annotations:
               linkerd.io/inject: enabled
               config.linkerd.io/proxy-log-level: debug
@@ -30,24 +30,24 @@ spec:
                 main:
                   resources:
                     requests:
-                      memory: 128Mi
-                      cpu: 1000m
+                      memory: 256Mi
+                      cpu: 250m
                     limits:
-                      memory: 1024Mi
-                      cpu: 1000m
+                      memory: 2048Mi
+                      cpu: 2000m
                   image:
-                    repository: docker-registry.debian-k3s/chess-engine-api
-                    tag: latest
+                    repository: ghcr.io/brandonros/pdf-generator
+                    tag: b152b6ff458f8b7a384806805a9d323dcd02815a
                   env:
-                    RUST_LOG:
-                      value: debug
+                    CHROMIUM_PATH:
+                      value: /usr/bin/chromium
                   ports:
                     http:
-                      containerPort: 8080
+                      containerPort: 3000
         service:
-          chess-engine-api:
+          pdf-generator:
             type: ClusterIP
             ports:
               http:
-                port: 8080
-                targetPort: 8080
+                port: 3000
+                targetPort: 3000

@@ -2,29 +2,36 @@
 
 set -e
 
-# check if VM is already running
-if ! limactl list | grep -q "debian-k3s.*Running"
+SCRIPT=$(readlink -f "$0")
+SCRIPT_PATH=$(dirname "$SCRIPT")
+[ -z "$DEPLOY_MODE" ] && DEPLOY_MODE="lima"
+
+if [[ "$DEPLOY_MODE" == "lima" ]]
 then
-    # provision VM
-    echo "provisioning VM"
-    limactl start --tty=false --name debian-k3s ./deploy/vm/debian-k3s.yaml
+    # check if VM is already running
+    if ! limactl list | grep -q "debian-k3s.*Running"
+    then
+        # provision VM
+        echo "provisioning VM"
+        limactl start --tty=false --name debian-k3s ./deploy/vm/debian-k3s.yaml
 
-    # trust k3s-generated CA
-    echo "trusting k3s-generated CA"
-    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /Users/brandon/.lima/debian-k3s/copied-from-guest/server-ca.crt
+        # trust k3s-generated CA
+        echo "trusting k3s-generated CA"
+        sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /Users/brandon/.lima/debian-k3s/copied-from-guest/server-ca.crt
 
-    # append exposed external services from ingress to /etc/hosts if not already present
-    echo "adding to /etc/hosts"
-    HOSTS_ENTRY="127.0.0.1 chess-engine-api.debian-k3s grafana.debian-k3s docker-registry.debian-k3s tempo.debian-k3s prometheus.debian-k3s linkerd-viz.debian-k3s backstage.debian-k3s"
-    if ! grep -qF "$HOSTS_ENTRY" /etc/hosts; then
-        echo "$HOSTS_ENTRY" | sudo tee -a /etc/hosts
+        # append exposed external services from ingress to /etc/hosts if not already present
+        echo "adding to /etc/hosts"
+        HOSTS_ENTRY="127.0.0.1 grafana.debian-k3s docker-registry.debian-k3s tempo.debian-k3s prometheus.debian-k3s linkerd-viz.debian-k3s graphite.debian-k3s pdf-generator.debian-k3s"
+        if ! grep -qF "$HOSTS_ENTRY" /etc/hosts; then
+            echo "$HOSTS_ENTRY" | sudo tee -a /etc/hosts
+        fi
     fi
-fi
 
-# copy certs for cert-manager
-mkdir -p ./deploy/kustomize/cert-manager/certs
-cp ~/.lima/debian-k3s/copied-from-guest/server-ca.crt ./deploy/kustomize/cert-manager/certs/server-ca.crt
-cp ~/.lima/debian-k3s/copied-from-guest/server-ca.key ./deploy/kustomize/cert-manager/certs/server-ca.key
+    # copy certs for cert-manager
+    mkdir -p ./deploy/kustomize/cert-manager/certs
+    cp ~/.lima/debian-k3s/copied-from-guest/server-ca.crt ./deploy/kustomize/cert-manager/certs/server-ca.crt
+    cp ~/.lima/debian-k3s/copied-from-guest/server-ca.key ./deploy/kustomize/cert-manager/certs/server-ca.key
+fi
 
 # workaround traefik needing v1.1.1 gateway-api and linkerd needing v0.8.1 gateway-api crds
 if ! kubectl get crd gatewayclasses.gateway.networking.k8s.io -o json | jq -e '.status.storedVersions | contains(["v1beta1"])' >/dev/null
@@ -32,38 +39,88 @@ then
     kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.8.1/experimental-install.yaml
     kubectl wait --for condition=established --timeout=60s crd/httproutes.gateway.networking.k8s.io
     kubectl wait --for condition=available --timeout=60s deployment/gateway-api-admission-server -n gateway-system
+    kubectl rollout status deployment/gateway-api-admission-server -n gateway-system --watch
 
     kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.1/experimental-install.yaml
     kubectl wait --for condition=established --timeout=60s crd/backendlbpolicies.gateway.networking.k8s.io
 fi
 
-# deploy
-export HOST_PATH="/mnt/chess_engine_api"
-export NGROK_API_KEY=${NGROK_API_KEY}
-export NGROK_AUTH_TOKEN=${NGROK_AUTH_TOKEN}
-export NGROK_HOST=${NGROK_HOST}
-kustomize build ./deploy/kustomize | envsubst | kubectl apply -f -
+## metrics-server
+echo "deploying metrics-server"
+kustomize build ./deploy/kustomize/metrics-server | envsubst | kubectl apply -f -
+# TODO: wait for metrics-server to be ready
 
-# patch coredns for external cluster pulling from docker-registry in the cluster
-echo "reconfiguring coredns"
-kubectl wait --for=condition=available --timeout=300s deployment/traefik -n traefik
-export TRAEFIK_IP=$(kubectl -n traefik get svc traefik -o jsonpath='{.spec.clusterIP}')
-envsubst < deploy/kustomize/coredns/config.yaml | kubectl apply -f -
+## cert-manager
+echo "deploying cert-manager"
+kustomize build ./deploy/kustomize/cert-manager | envsubst | kubectl apply -f -
+echo "Waiting for cert-manager deployments to be created..."
+kubectl wait --for=create deployment/cert-manager -n cert-manager --timeout=120s
+kubectl wait --for=create deployment/cert-manager-webhook -n cert-manager --timeout=120s
+kubectl wait --for=create deployment/cert-manager-cainjector -n cert-manager --timeout=120s
+echo "Waiting for cert-manager deployments to be available..."
+kubectl wait --for=condition=available deployment/cert-manager -n cert-manager --timeout=120s
+kubectl wait --for=condition=available deployment/cert-manager-webhook -n cert-manager --timeout=120s
+kubectl wait --for=condition=available deployment/cert-manager-cainjector -n cert-manager --timeout=120s
+echo "Waiting for cert-manager webhook to be ready..."
+kubectl rollout status deployment/cert-manager-webhook -n cert-manager --watch
+echo "Waiting for cert-manager CRDs to be established..."
+kubectl wait --for=condition=established --timeout=120s crd/clusterissuers.cert-manager.io
+kubectl wait --for=condition=established --timeout=120s crd/certificates.cert-manager.io
+kubectl wait --for=condition=established --timeout=120s crd/certificaterequests.cert-manager.io
+echo "Waiting for cert-manager CA secret to be created..."
+kubectl wait --for=create secret/debian-k3s-tls -n cert-manager --timeout=60s
 
-# check if we need to build the application
-if ! curl -s https://docker-registry.debian-k3s/v2/_catalog | jq -e '.repositories | contains(["chess-engine-api"])' >/dev/null; then
-    echo "chess-engine-api image not found, building application"
+## cert-manager-ca
+echo "deploying cert-manager-ca"
+kustomize build ./deploy/kustomize/cert-manager-ca | envsubst | kubectl apply -f -
+echo "Waiting for ClusterIssuer to be ready..."
+kubectl wait --for=condition=ready clusterissuer/debian-k3s-ca-issuer --timeout=60s
 
-    # create build job
-    export TIMESTAMP=$(date +%s)
-    export JOB_NAME="kaniko-build-${TIMESTAMP}"
-    export IMAGE_DESTINATION="docker-registry.docker-registry.svc.cluster.local:5000/chess-engine-api:latest"
-    export PVC_NAME="cicd-pvc"
-    export DOCKERFILE="Dockerfile"
-    export PVC_MOUNT_PATH="/workspace"
-    envsubst < ./deploy/kustomize/cicd/build-job.yaml | kubectl apply -f -
+## trust-manager
+echo "deploying trust-manager"
+kustomize build ./deploy/kustomize/trust-manager | envsubst | kubectl apply -f -
+echo "Waiting for trust-manager deployments to be created..."
+kubectl wait --for=create deployment/trust-manager -n trust-manager --timeout=120s
+echo "Waiting for trust-manager deployments to be available..."
+kubectl wait --for=condition=available deployment/trust-manager -n trust-manager --timeout=120s
+echo "Waiting for trust-manager webhook to be ready..."
+kubectl rollout status deployment/trust-manager -n trust-manager --watch
+echo "Waiting for trust-manager CRDs to be established..."
+kubectl wait --for=condition=established --timeout=120s crd/bundles.trust.cert-manager.io
+ 
+## traefik
+echo "deploying traefik"
+kustomize build ./deploy/kustomize/traefik | envsubst | kubectl apply -f -
+echo "Waiting for traefik deployments to be created..."
+kubectl wait --for=create deployment/traefik -n traefik --timeout=120s
+echo "Waiting for traefik to be ready..."
+kubectl wait --for=condition=available deployment/traefik -n traefik --timeout=120s
+kubectl rollout status deployment/traefik -n traefik --watch
+echo "Waiting for traefik CA secret to be created..."
+kubectl wait --for=create secret/debian-k3s-gateway-tls -n traefik --timeout=60s
 
-    # wait for job to complete
-    echo "waiting for kaniko build job to complete"
-    kubectl wait --for=condition=complete --timeout=300s job/${JOB_NAME} -n cicd
-fi
+## linkerd
+echo "deploying linkerd"
+kustomize build ./deploy/kustomize/linkerd | envsubst | kubectl apply -f -
+# TODO: wait for linkerd to be ready
+
+## monitoring
+echo "deploying monitoring"
+kustomize build ./deploy/kustomize/monitoring | envsubst | kubectl apply -f -
+# TODO: wait for monitoring to be ready
+
+## pdf-generator
+echo "deploying pdf-generator"
+kustomize build ./deploy/kustomize/pdf-generator | envsubst | kubectl apply -f -
+kubectl wait --for=create deployment/pdf-generator -n pdf-generator --timeout=120s
+kubectl rollout status deployment pdf-generator -n pdf-generator --watch
+
+## linkerd-control-plane
+echo "deploying linkerd-control-plane"
+kustomize build ./deploy/kustomize/linkerd-control-plane | envsubst | kubectl apply -f -
+# TODO: wait for linkerd-control-plane to be ready
+
+## traefik-routes
+echo "deploying traefik-routes"
+kustomize build ./deploy/kustomize/traefik-routes | envsubst | kubectl apply -f -
+# TODO: wait for traefik-routes to be ready

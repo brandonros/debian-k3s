@@ -5,3 +5,4 @@ resources:
   - ./kube-prometheus-stack.yaml
   - ./loki-stack.yaml
   - ./tempo.yaml
+  - ./graphite.yaml

@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./chart.yaml
-  - ./ca.yaml
 generatorOptions:
   disableNameSuffixHash: true
 secretGenerator:
