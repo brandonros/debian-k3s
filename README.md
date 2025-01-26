@@ -10,7 +10,6 @@ K3s + Kustomize + Helm on top of Debian
 - Linkerd (service mesh, observability)
 - cert-manager + trust-manager (automated certificate management)
 - Helm (deployment package manager / YAML templating engine)
-- ngrok-operator (local-to-public endpoint mapper)
 - Graphite (metrics)
 - Chromium (headless browser)
 

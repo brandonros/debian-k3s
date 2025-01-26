@@ -3,4 +3,3 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./chart.yaml
-  - ./ngrok-ingress.yaml

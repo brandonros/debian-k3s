@@ -38,9 +38,6 @@ then
 fi
 
 # deploy
-export NGROK_API_KEY=${NGROK_API_KEY}
-export NGROK_AUTH_TOKEN=${NGROK_AUTH_TOKEN}
-export NGROK_HOST=${NGROK_HOST}
 kustomize build ./deploy/kustomize | envsubst | kubectl apply -f -
 
 # patch coredns for external cluster pulling from docker-registry in the cluster

@@ -8,5 +8,4 @@ resources:
   - monitoring
   - linkerd
   - traefik
-  - ngrok-operator
   - chromium
