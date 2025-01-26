@@ -8,10 +8,10 @@ images:
   digest: "sha256:42911131556b610895360e3d28a2c3ec41c0bad85e8df9fc9374996509d1f256" # Wed, 15 Jan 2025 23:04:40 GMT
 
 # memory
-memory: "8GiB"
+memory: "10GiB"
 
 # cpus
-cpus: 4
+cpus: 8
 
 # cpu type (TODO: gets ignored by VZ?)
 cpuType:

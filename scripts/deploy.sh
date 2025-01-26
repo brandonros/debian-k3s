@@ -39,15 +39,45 @@ fi
 
 # deploy
 kustomize build ./deploy/kustomize/metrics-server | envsubst | kubectl apply -f -
+
+## cert-manager
 kustomize build ./deploy/kustomize/cert-manager | envsubst | kubectl apply -f -
+echo "Waiting for cert-manager webhook to be ready..."
+kubectl wait --for=condition=ready pod -l app=webhook -n cert-manager --timeout=120s
+echo "Waiting for cert-manager CRDs to be established..."
+kubectl wait --for=condition=established --timeout=120s crd/clusterissuers.cert-manager.io
+kubectl wait --for=condition=established --timeout=120s crd/certificates.cert-manager.io
+kubectl wait --for=condition=established --timeout=120s crd/certificaterequests.cert-manager.io
+
+## trust-manager
 kustomize build ./deploy/kustomize/trust-manager | envsubst | kubectl apply -f -
-# TODO: wait for trust-manager to be ready
+echo "Waiting for trust-manager webhook to be ready..."
+kubectl wait --for=condition=ready pod -l app=trust-manager -n trust-manager --timeout=120s
+echo "Waiting for trust-manager CRDs to be established..."
+kubectl wait --for=condition=established --timeout=120s crd/bundles.trust.cert-manager.io
+
+## linkerd
 kustomize build ./deploy/kustomize/linkerd | envsubst | kubectl apply -f -
+# TODO: wait for linkerd to be ready
+
+## traefik
 kustomize build ./deploy/kustomize/traefik | envsubst | kubectl apply -f -
+# TODO: wait for traefik to be ready
+
+## coredns
 kustomize build ./deploy/kustomize/coredns | envsubst | kubectl apply -f -
+
+## monitoring
 kustomize build ./deploy/kustomize/monitoring | envsubst | kubectl apply -f -
+
+## chromium
 kustomize build ./deploy/kustomize/chromium | envsubst | kubectl apply -f -
+
+## pdf-generator
 kustomize build ./deploy/kustomize/pdf-generator | envsubst | kubectl apply -f -
+
+## traefik-routes
+kustomize build ./deploy/kustomize/traefik-routes | envsubst | kubectl apply -f -
 
 # patch coredns for external cluster pulling from docker-registry in the cluster
 echo "reconfiguring coredns"

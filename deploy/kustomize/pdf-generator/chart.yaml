@@ -21,7 +21,7 @@ spec:
             enabled: false
         deployment:
           pdf-generator:
-            replicas: 2
+            replicas: 4
             annotations:
               linkerd.io/inject: enabled
               config.linkerd.io/proxy-log-level: debug
@@ -31,10 +31,10 @@ spec:
                   resources:
                     requests:
                       memory: 256Mi
-                      cpu: 100m
+                      cpu: 200m
                     limits:
-                      memory: 1024Mi
-                      cpu: 1000m
+                      memory: 512Mi
+                      cpu: 500m
                   image:
                     repository: ghcr.io/brandonros/pdf-generator
                     tag: 23c39e48d17d5e113489f105ec56d79612b1fa26
