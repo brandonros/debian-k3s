@@ -5,5 +5,4 @@ resources:
   - ./crds-chart.yaml
   - ./identity-issuer.yaml
   - ./identity-trust-roots.yaml
-  - ./control-plane-chart.yaml
   - ./viz-chart.yaml

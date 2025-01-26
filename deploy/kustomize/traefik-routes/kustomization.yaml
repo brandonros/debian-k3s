@@ -6,5 +6,4 @@ resources:
   - ./tempo-route.yaml
   - ./linkerd-viz-route.yaml
   - ./graphite-route.yaml
-  - ./chromium-route.yaml
   - ./pdf-generator-route.yaml

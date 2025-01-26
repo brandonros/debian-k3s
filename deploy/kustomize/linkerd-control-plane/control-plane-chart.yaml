@@ -27,4 +27,4 @@ spec:
           matchNames:
             - {{ .Release.Namespace }}
             - traefik
-            - chess-engine-api
+            - pdf-generator

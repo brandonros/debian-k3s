@@ -21,7 +21,7 @@ spec:
             enabled: false
         deployment:
           pdf-generator:
-            replicas: 5
+            replicas: 4
             annotations:
               linkerd.io/inject: enabled
               config.linkerd.io/proxy-log-level: debug
@@ -30,17 +30,17 @@ spec:
                 main:
                   resources:
                     requests:
-                      memory: 256Mi
-                      cpu: 250m
-                    limits:
                       memory: 1024Mi
                       cpu: 1000m
+                    limits:
+                      memory: 2048Mi
+                      cpu: 2000m
                   image:
                     repository: ghcr.io/brandonros/pdf-generator
-                    tag: 7ab1b58a55b8f61cbc564b9758aa00a4841abae0
+                    tag: b152b6ff458f8b7a384806805a9d323dcd02815a
                   env:
-                    BROWSER_WS_ENDPOINT:
-                      value: ws://chromium.chromium.svc.cluster.local:3000/
+                    CHROMIUM_PATH:
+                      value: /usr/bin/chromium
                   ports:
                     http:
                       containerPort: 3000

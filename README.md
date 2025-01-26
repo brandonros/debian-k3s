@@ -11,7 +11,7 @@ K3s + Kustomize + Helm on top of Debian
 - cert-manager + trust-manager (automated certificate management)
 - Helm (deployment package manager / YAML templating engine)
 - Graphite (metrics)
-- Chromium (headless browser)
+- Chromium / Puppeteer (headless browser)
 
 ## Technologies to add
 
