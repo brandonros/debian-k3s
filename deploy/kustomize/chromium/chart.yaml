@@ -21,7 +21,7 @@ spec:
             enabled: false
         deployment:
           chromium:
-            replicas: 4
+            replicas: 5
             annotations:
               linkerd.io/inject: enabled
               config.linkerd.io/proxy-log-level: debug
@@ -30,7 +30,7 @@ spec:
                 main:
                   resources:
                     requests:
-                      memory: 512Mi
+                      memory: 1024Mi
                       cpu: 500m
                     limits:
                       memory: 1536Mi
@@ -41,6 +41,12 @@ spec:
                   env:
                     CONCURRENT:
                       value: 10
+                    HEALTH:
+                      value: true
+                    MAX_MEMORY_PERCENT:
+                      value: 95
+                    MAX_CPU_PERCENT:
+                      value: 95
                   ports:
                     http:
                       containerPort: 3000
