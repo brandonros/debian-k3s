@@ -30,17 +30,17 @@ spec:
                 main:
                   resources:
                     requests:
-                      memory: 512Mi
-                      cpu: 500m
+                      memory: 256Mi
+                      cpu: 100m
                     limits:
-                      memory: 2048Mi
+                      memory: 1024Mi
                       cpu: 1000m
                   image:
                     repository: ghcr.io/brandonros/pdf-generator
-                    tag: 3dd49de778656d59b84a08debbccb0456421cd00
+                    tag: 23c39e48d17d5e113489f105ec56d79612b1fa26
                   env:
                     BROWSER_WS_ENDPOINT:
-                      value: ws://chromium:3000/
+                      value: ws://chromium.chromium.svc.cluster.local:3000/
                   ports:
                     http:
                       containerPort: 3000

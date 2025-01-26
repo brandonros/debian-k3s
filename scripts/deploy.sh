@@ -38,7 +38,16 @@ then
 fi
 
 # deploy
-kustomize build ./deploy/kustomize | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/metrics-server | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/cert-manager | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/trust-manager | envsubst | kubectl apply -f -
+# TODO: wait for trust-manager to be ready
+kustomize build ./deploy/kustomize/linkerd | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/traefik | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/coredns | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/monitoring | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/chromium | envsubst | kubectl apply -f -
+kustomize build ./deploy/kustomize/pdf-generator | envsubst | kubectl apply -f -
 
 # patch coredns for external cluster pulling from docker-registry in the cluster
 echo "reconfiguring coredns"
