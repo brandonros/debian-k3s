@@ -105,7 +105,7 @@ kustomize build ./deploy/kustomize/monitoring | envsubst | kubectl apply -f -
 ## pdf-generator
 echo "deploying pdf-generator"
 kustomize build ./deploy/kustomize/pdf-generator | envsubst | kubectl apply -f -
-# TODO: wait for pdf-generator to be ready
+kubectl rollout status deployment pdf-generator -n pdf-generator --watch
 
 ## linkerd-control-plane
 echo "deploying linkerd-control-plane"

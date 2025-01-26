@@ -21,7 +21,7 @@ spec:
             enabled: false
         deployment:
           pdf-generator:
-            replicas: 4
+            replicas: 5
             annotations:
               linkerd.io/inject: enabled
               config.linkerd.io/proxy-log-level: debug
@@ -30,8 +30,8 @@ spec:
                 main:
                   resources:
                     requests:
-                      memory: 1024Mi
-                      cpu: 1000m
+                      memory: 256Mi
+                      cpu: 250m
                     limits:
                       memory: 2048Mi
                       cpu: 2000m
